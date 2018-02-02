@@ -26,7 +26,9 @@ struct nng_t {
 
   int board_lines_id[MAX_LINES][MAX_COLS];
   int board_cols_id[MAX_LINES][MAX_COLS];
-
+  int board_lines_size[MAX_COLS];
+  int board_cols_size[MAX_LINES];
+  
   int board[MAX_LINES][MAX_COLS];
   int nb_val_set;
   
@@ -38,6 +40,8 @@ struct nng_t {
 	board_lines_id[i][j] = -1;
 	board_cols_id[i][j] = -1;
       }
+    for(int i = 0; i < nbc; i++) board_lines_size[i] = 0;
+    for(int i = 0; i < nbl; i++) board_cols_size[i] = 0;
     nb_val_set = 0;
   }
   void set_max() {
@@ -59,16 +63,54 @@ struct nng_t {
     int curr_id = 0;
     int curr_val = board[_lid][0];
     board_lines_id[_lid][0] = curr_id;
+    int best_cols_size = 0;
+    int curr_cols_size = 0;
+    if(board[_lid][0] == BLACK) {
+      best_cols_size = 1;
+      curr_cols_size = 1;
+    }
     for(int i = 1; i < nbc; i++) {
-      if(board[_lid][i] == curr_val) board_lines_id[_lid][i] = curr_id;
-      else {
+      if(board[_lid][i] == curr_val) {
+	board_lines_id[_lid][i] = curr_id;
+	curr_cols_size ++;
+      } else {
+	if(board[_lid][i] == WHITE)
+	  if(best_cols_size < curr_cols_size)
+	    best_cols_size = curr_cols_size;
 	curr_val = board[_lid][i];
 	++curr_id;
 	board_lines_id[_lid][i] = curr_id;
+	curr_cols_size = 1;
       }
     }
+    board_lines_size[_lid] = best_cols_size;
   }
   void set_col_id(int _cid) {
+    for(int i = 0; i < nbl; i++) board_cols_id[i][_cid] = -1;
+    int curr_id = 0;
+    int curr_val = board[0][_cid];
+    board_cols_id[0][_cid] = curr_id;
+    int best_lines_size = 0;
+    int curr_lines_size = 0;
+    if(board[0][_cid] == BLACK) {
+      best_lines_size = 1;
+      curr_lines_size = 1;
+    }
+    for(int i = 1; i < nbl; i++) {
+      if(board[i][_cid] == curr_val) {
+	board_cols_id[i][_cid] = curr_id;
+	curr_lines_size ++;
+      } else {
+	if(board[i][_cid] == WHITE)
+	  if(best_lines_size < curr_lines_size)
+	    best_lines_size = curr_lines_size;
+	curr_val = board[i][_cid];
+	++curr_id;
+	board_cols_id[i][_cid] = curr_id;
+	curr_lines_size = 1;
+      }
+    }
+    board_cols_size[_cid] = best_lines_size;
   }
   void print_board() {
     printf("sum_c_lines: %d\n", sum_c_lines);
@@ -80,7 +122,7 @@ struct nng_t {
       printf("\n");
     }
   }
-  void print_board_id(){
+  void print_board_id_and_size(){
     printf("lines_id __ cols_id : \n");
     for(int i = 0; i < nbl; i++) {
       for(int j = 0; j < nbc; j++) {
@@ -94,6 +136,11 @@ struct nng_t {
       }
       printf("\n");
     }
+    printf("lines_size : ");
+    for(int i = 0; i < nbc; i++) printf("%d ", board_lines_size[i]);
+    printf("\ncols_size : ");
+    for(int i = 0; i < nbl; i++) printf("%d ", board_cols_size[i]);
+    printf("\n");
   }
   void print_constraints() {
     printf("lines %d : ", nbl);
@@ -224,10 +271,10 @@ struct nng_t {
   /* } */
 
   void playout() {
-    //while(nb_val_set != sum_c_lines) {
+    for(int i  =0; i < 5; i++) {
       nng_move_t m = get_rand_move();
       play(m);
-      //}
+    }
   }
   bool terminal_col(int _cid) {
     return true;

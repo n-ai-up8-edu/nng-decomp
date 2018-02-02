@@ -244,40 +244,20 @@ struct nng_t {
   // if the longest group is longer than the longest constraint
   // (in a row or column)
   bool terminal() {
-    /* for(int i = 0; i < nbl; i++)  */
-    /*   if(terminal_line(i)) return true; */
-    /* for(int j = 0; j < nbc; j++)  */
-    /*   if(terminal_col(i)) return true;	 */
+    for(int i = 0; i < nbc; i++)  
+      if(board_lines_size[i] > max_lines[i]) return true;
+    for(int i = 0; i < nbl; i++)  
+      if(board_cols_size[i] > max_cols[i]) return true;
     return false;
   }
-  /* bool terminal_line(int _lid) { */
-  /*   static int gid[MAX_COLS]; */
-  /*   static int nb_gid = 0; */
-  /*   static int count_ON = 0; */
-  /*   for(int i = 0; i < MAX_COLS; i++) gid[i] = -1; */
-  /*   if(board[_lid].col[0] == BLACK) { gid[0] = 0; nb_gid = 1; count_ON = 1; }; */
-  /*   for(int i = 1; i < MAX_COLS; i++) { */
-  /*     if(count_ON == 1) { */
-  /* 	if(board[_lid].col[i] == BLACK) { gid[i] = nb_gid-1; } */
-  /* 	else { nb_gid++; count_ON = 0; } */
-  /*     } else { */
-  /* 	if(board[_lid].col[i] == BLACK) { gid[i] = nb_gid; nb_gid++; count_ON = 1; } */
-  /*     } */
-  /*   } */
-  /*   prnitf("gid: "); */
-  /*   for(int i = 0; i < MAX_COLS; i++)  */
-  /*     printf("%d ", gid[i]); */
-  /*   prnitf("\n"); */
-  /* } */
-
   void playout() {
-    for(int i  =0; i < 5; i++) {
+    while( ! terminal()) {
       nng_move_t m = get_rand_move();
       play(m);
     }
   }
-  bool terminal_col(int _cid) {
-    return true;
+  int score() {
+    
   }
   
 };

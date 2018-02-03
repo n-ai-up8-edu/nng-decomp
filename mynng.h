@@ -307,12 +307,16 @@ struct nng_t {
     for(int i = 0; i < nbl; i++)
       if(board_max_nbc_cols[i] != problem_max_nbc_cols[i]) return false;
     // sizes of groups are different => false
-    for(int i = 0; i < nbl; i++)
+    for(int i = 0; i < nbl; i++) {
+      if(board_nb_c_lines[i] != problem_nb_c_lines[i]) return false;
       for(int j = 0; j < problem_nb_c_lines[i]; j++) 
 	if(board_c_lines[i][j] != problem_c_lines[i][j]) return false;
-    for(int i = 0; i < nbc; i++)
+    }
+    for(int i = 0; i < nbc; i++) {
+      if(board_nb_c_cols[i] != problem_nb_c_cols[i]) return false;
       for(int j = 0; j < problem_nb_c_cols[i]; j++) 
 	if(board_c_cols[i][j] != problem_c_cols[i][j]) return false;
+    }
     // all are equals... so potentially the solution
     return true;
   }
@@ -324,12 +328,16 @@ struct nng_t {
   }
   // GGP-like score
   int score() {
-    for(int i = 0; i < nbl; i++)
+    for(int i = 0; i < nbl; i++) {
+      if(board_nb_c_lines[i] != problem_nb_c_lines[i]) return 0;
       for(int j = 0; j < problem_nb_c_lines[i]; j++) 
 	if(board_c_lines[i][j] != problem_c_lines[i][j]) return 0;
-    for(int i = 0; i < nbc; i++)
+    }
+    for(int i = 0; i < nbc; i++) {
+      if(board_nb_c_cols[i] != problem_nb_c_cols[i]) return 0;
       for(int j = 0; j < problem_nb_c_cols[i]; j++) 
 	if(board_c_cols[i][j] != problem_c_cols[i][j]) return 0;
+    }
     return 100;
   }
   

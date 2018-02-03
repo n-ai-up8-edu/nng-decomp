@@ -15,105 +15,28 @@ struct nng_move_t {
 struct nng_t {
   int nbl;
   int nbc;
-  int c_lines[MAX_LINES][MAX_CONSTRAINTS];
-  int nb_c_lines[MAX_LINES];
-  int c_cols[MAX_COLS][MAX_CONSTRAINTS];
-  int nb_c_cols[MAX_COLS];
-  int sum_c_lines;
-
-  int max_lines[MAX_LINES];
-  int max_cols[MAX_COLS];
+  int problem_c_lines[MAX_LINES][MAX_CONSTRAINTS];
+  int problem_nb_c_lines[MAX_LINES];
+  int problem_c_cols[MAX_COLS][MAX_CONSTRAINTS];
+  int problem_nb_c_cols[MAX_COLS];
+  int problem_sum_c_lines;
+  int problem_max_nbc_lines[MAX_LINES];
+  int problem_max_nbc_cols[MAX_COLS];
 
   int board_lines_id[MAX_LINES][MAX_COLS];
   int board_cols_id[MAX_LINES][MAX_COLS];
-  int board_lines_size[MAX_COLS];
-  int board_cols_size[MAX_LINES];
-  
+  int board_max_nbc_lines[MAX_COLS];
+  int board_max_nbc_cols[MAX_LINES];
+  int board_nb_c_lines[MAX_LINES];
+  int board_c_lines[MAX_LINES][MAX_CONSTRAINTS]; // !!! FIRST INDEX = LID
+  int board_nb_c_cols[MAX_COLS];
+  int board_c_cols[MAX_COLS][MAX_CONSTRAINTS]; // !!! FIRST INDEX = CID
+
   int board[MAX_LINES][MAX_COLS];
   int nb_val_set;
   
-  void init(int _nbl, int _nbc) {
-    nbl = _nbl; nbc = _nbc;
-    for(int i = 0; i < nbl; i++)
-      for(int j = 0; j < nbc; j++) {
-	board[i][j] = WHITE;
-	board_lines_id[i][j] = -1;
-	board_cols_id[i][j] = -1;
-      }
-    for(int i = 0; i < nbc; i++) board_lines_size[i] = 0;
-    for(int i = 0; i < nbl; i++) board_cols_size[i] = 0;
-    nb_val_set = 0;
-  }
-  void set_max() {
-    for(int i = 0; i < nbl; i++) {
-      max_lines[i] = 0;
-      for(int j = 0; j < nb_c_lines[i]; j++) {
-	if(c_lines[i][j] > max_lines[i]) max_lines[i] = c_lines[i][j];
-      }
-    }
-    for(int i = 0; i < nbc; i++) {
-      max_cols[i] = 0;
-      for(int j = 0; j < nb_c_cols[i]; j++) {
-	if(c_cols[i][j] > max_cols[i]) max_cols[i] = c_cols[i][j];
-      }
-    }
-  }
-  void set_line_id(int _lid) {
-    for(int i = 0; i < nbc; i++) board_lines_id[_lid][i] = -1;
-    int curr_id = 0;
-    int curr_val = board[_lid][0];
-    board_lines_id[_lid][0] = curr_id;
-    int best_cols_size = 0;
-    int curr_cols_size = 0;
-    if(board[_lid][0] == BLACK) {
-      best_cols_size = 1;
-      curr_cols_size = 1;
-    }
-    for(int i = 1; i < nbc; i++) {
-      if(board[_lid][i] == curr_val) {
-	board_lines_id[_lid][i] = curr_id;
-	curr_cols_size ++;
-      } else {
-	if(board[_lid][i] == WHITE)
-	  if(best_cols_size < curr_cols_size)
-	    best_cols_size = curr_cols_size;
-	curr_val = board[_lid][i];
-	++curr_id;
-	board_lines_id[_lid][i] = curr_id;
-	curr_cols_size = 1;
-      }
-    }
-    board_lines_size[_lid] = best_cols_size;
-  }
-  void set_col_id(int _cid) {
-    for(int i = 0; i < nbl; i++) board_cols_id[i][_cid] = -1;
-    int curr_id = 0;
-    int curr_val = board[0][_cid];
-    board_cols_id[0][_cid] = curr_id;
-    int best_lines_size = 0;
-    int curr_lines_size = 0;
-    if(board[0][_cid] == BLACK) {
-      best_lines_size = 1;
-      curr_lines_size = 1;
-    }
-    for(int i = 1; i < nbl; i++) {
-      if(board[i][_cid] == curr_val) {
-	board_cols_id[i][_cid] = curr_id;
-	curr_lines_size ++;
-      } else {
-	if(board[i][_cid] == WHITE)
-	  if(best_lines_size < curr_lines_size)
-	    best_lines_size = curr_lines_size;
-	curr_val = board[i][_cid];
-	++curr_id;
-	board_cols_id[i][_cid] = curr_id;
-	curr_lines_size = 1;
-      }
-    }
-    board_cols_size[_cid] = best_lines_size;
-  }
   void print_board() {
-    printf("sum_c_lines: %d\n", sum_c_lines);
+    printf("problem_sum_c_lines: %d\n", problem_sum_c_lines);
     printf("nb_val_set: %d\n", nb_val_set);
     for(int i = 0; i < nbl; i++) {
       for(int j = 0; j < nbc; j++) {
@@ -122,7 +45,7 @@ struct nng_t {
       printf("\n");
     }
   }
-  void print_board_id_and_size(){
+  void print_board_info(){
     printf("lines_id __ cols_id : \n");
     for(int i = 0; i < nbl; i++) {
       for(int j = 0; j < nbc; j++) {
@@ -136,38 +59,165 @@ struct nng_t {
       }
       printf("\n");
     }
-    printf("lines_size : ");
-    for(int i = 0; i < nbc; i++) printf("%d ", board_lines_size[i]);
-    printf("\ncols_size : ");
-    for(int i = 0; i < nbl; i++) printf("%d ", board_cols_size[i]);
+    printf("board_max_nbc_lines : ");
+    for(int i = 0; i < nbc; i++) printf("%d ", board_max_nbc_lines[i]);
+    printf("\nboard_max_nbc_cols : ");
+    for(int i = 0; i < nbl; i++) printf("%d ", board_max_nbc_cols[i]);
+    printf("\nboard_c_lines : ");
+    for(int i = 0; i < nbl; i++) {
+      printf("(");
+      for(int j = 0; j < board_nb_c_lines[i]; j++) {
+    	printf("%d ", board_c_lines[i][j]);
+      }
+      printf(") ");
+    }
+    printf("\nboard_c_cols : ");
+    for(int i = 0; i < nbc; i++) {
+      printf("(");
+      for(int j = 0; j < board_nb_c_cols[i]; j++) {
+	printf("%d ", board_c_cols[i][j]);
+      }
+      printf(") ");
+    }
     printf("\n");
   }
-  void print_constraints() {
+  void print_problem_info() {
     printf("lines %d : ", nbl);
     for(int i = 0; i < nbl; i++) {
       printf("(");
-      for(int j = 0; j < nb_c_lines[i]; j++) {
-	printf("%d ", c_lines[i][j]);
+      for(int j = 0; j < problem_nb_c_lines[i]; j++) {
+	printf("%d ", problem_c_lines[i][j]);
       }
       printf(") ");
     }
     printf("\ncols %d : ", nbc);
     for(int i = 0; i < nbc; i++) {
       printf("(");
-      for(int j = 0; j < nb_c_cols[i]; j++) {
-	printf("%d ", c_cols[i][j]);
+      for(int j = 0; j < problem_nb_c_cols[i]; j++) {
+	printf("%d ", problem_c_cols[i][j]);
       }
       printf(") ");
     }
     printf("\n");
-    printf("max_lines: ");
+    printf("problem_max_nbc_lines : ");
     for(int i = 0; i < nbl; i++)
-      printf("%d ", max_lines[i]);
+      printf("%d ", problem_max_nbc_lines[i]);
     printf("\n");
-    printf("max_cols: ");
+    printf("problem_max_nbc_cols : ");
     for(int i = 0; i < nbc; i++)
-      printf("%d ", max_cols[i]);
+      printf("%d ", problem_max_nbc_cols[i]);
     printf("\n");
+  }
+  void copy(nng_t& _n) {
+    memcpy(this, &_n, sizeof(nng_t));
+  }
+  void init(int _nbl, int _nbc) {
+    nbl = _nbl; nbc = _nbc;
+    for(int i = 0; i < nbl; i++)
+      for(int j = 0; j < nbc; j++) {
+	board[i][j] = WHITE;
+	board_lines_id[i][j] = -1;
+	board_cols_id[i][j] = -1;
+      }
+    for(int i = 0; i < nbc; i++) {
+      board_max_nbc_lines[i] = 0;
+      for(int j = 0; j < MAX_CONSTRAINTS; j++) board_c_lines[i][j] = 0;
+    }
+    for(int i = 0; i < nbl; i++) {
+      board_max_nbc_cols[i] = 0;
+      for(int j = 0; j < MAX_CONSTRAINTS; j++) board_c_cols[i][j] = 0;
+    }
+    nb_val_set = 0;
+  }
+  void set_max() {
+    for(int i = 0; i < nbl; i++) {
+      problem_max_nbc_lines[i] = 0;
+      for(int j = 0; j < problem_nb_c_lines[i]; j++) {
+	if(problem_c_lines[i][j] > problem_max_nbc_lines[i]) problem_max_nbc_lines[i] = problem_c_lines[i][j];
+      }
+    }
+    for(int i = 0; i < nbc; i++) {
+      problem_max_nbc_cols[i] = 0;
+      for(int j = 0; j < problem_nb_c_cols[i]; j++) {
+	if(problem_c_cols[i][j] > problem_max_nbc_cols[i]) problem_max_nbc_cols[i] = problem_c_cols[i][j];
+      }
+    }
+  }
+  void set_line_id(int _lid) {
+    for(int i = 0; i < nbc; i++) board_lines_id[_lid][i] = -1;
+    int curr_id = 0;
+    int curr_gid = 0;
+    int curr_val = board[_lid][0];
+    board_lines_id[_lid][0] = curr_id;
+    int best_lines_size = 0;
+    int curr_lines_size = 0;
+    if(board[_lid][0] == BLACK) {
+      best_lines_size = 1;
+      curr_lines_size = 1;
+    }
+    for(int i = 1; i < nbc; i++) {
+      if(board[_lid][i] == curr_val) {
+	board_lines_id[_lid][i] = curr_id;
+	curr_lines_size ++;
+      } else {
+	if(board[_lid][i] == WHITE) {
+	  if(best_lines_size < curr_lines_size)
+	    best_lines_size = curr_lines_size;
+	  board_c_lines[_lid][curr_gid] = curr_lines_size;
+	  curr_gid++;
+	  board_nb_c_lines[_lid] = curr_gid;
+	}
+	curr_val = board[_lid][i];
+	++curr_id;
+	board_lines_id[_lid][i] = curr_id;
+	curr_lines_size = 1;
+      }
+    }
+    if(board[_lid][nbc-1] == BLACK) {
+      if(best_lines_size < curr_lines_size)
+	best_lines_size = curr_lines_size;
+      board_c_lines[_lid][curr_gid] = curr_lines_size;
+      board_nb_c_lines[_lid] = curr_gid+1;
+    }
+    board_max_nbc_lines[_lid] = best_lines_size; 
+  }
+  void set_col_id(int _cid) {
+    for(int i = 0; i < nbl; i++) board_cols_id[i][_cid] = -1;
+    int curr_id = 0;
+    int curr_gid = 0;
+    int curr_val = board[0][_cid];
+    board_cols_id[0][_cid] = curr_id;
+    int best_cols_size = 0;
+    int curr_cols_size = 0;
+    if(board[0][_cid] == BLACK) {
+      best_cols_size = 1;
+      curr_cols_size = 1;
+    }
+    for(int i = 1; i < nbl; i++) {
+      if(board[i][_cid] == curr_val) {
+	board_cols_id[i][_cid] = curr_id;
+	curr_cols_size ++;
+      } else {
+	if(board[i][_cid] == WHITE) {
+	  if(best_cols_size < curr_cols_size)
+	    best_cols_size = curr_cols_size;
+	  board_c_cols[_cid][curr_gid] = curr_cols_size;
+	  curr_gid++;
+	  board_nb_c_cols[_cid] = curr_gid;
+	}
+	curr_val = board[i][_cid];
+	++curr_id;
+	board_cols_id[i][_cid] = curr_id;
+	curr_cols_size = 1;
+      }
+    }
+    if(board[nbl-1][_cid] == BLACK) {
+      if(best_cols_size < curr_cols_size)
+	best_cols_size = curr_cols_size;
+      board_c_cols[_cid][curr_gid] = curr_cols_size;
+      board_nb_c_cols[_cid] = curr_gid+1;
+    }
+    board_max_nbc_cols[_cid] = best_cols_size;
   }
   void load(char* _file) {
     FILE* fp;
@@ -198,16 +248,16 @@ struct nng_t {
 	else if(sscanf(line, "%d %d", &vals[0], &vals[1]) == 2) nbvals=2;
 	else if(sscanf(line, "%d", &vals[0]) == 1) nbvals=1;
 	if(mode == 1) {
-	  nb_c_lines[nbl] = nbvals;
+	  problem_nb_c_lines[nbl] = nbvals;
 	  for(int i = 0; i < nbvals; i++) {
-	    c_lines[nbl][i] = vals[i];
-	    sum_c_lines += vals[i];
+	    problem_c_lines[nbl][i] = vals[i];
+	    problem_sum_c_lines += vals[i];
 	  }
 	  nbl++;
 	}
 	if(mode == 2) {
-	  nb_c_cols[nbc] = nbvals;
-	  for(int i = 0; i < nbvals; i++) c_cols[nbc][i] = vals[i];
+	  problem_nb_c_cols[nbc] = nbvals;
+	  for(int i = 0; i < nbvals; i++) problem_c_cols[nbc][i] = vals[i];
 	  nbc++;
 	}
       }
@@ -244,11 +294,27 @@ struct nng_t {
   // if the longest group is longer than the longest constraint
   // (in a row or column)
   bool terminal() {
+    // all are checked
+    if(nb_val_set == nbl*nbc) return true;
+    // one is bigger => true
     for(int i = 0; i < nbc; i++)  
-      if(board_lines_size[i] > max_lines[i]) return true;
+      if(board_max_nbc_lines[i] > problem_max_nbc_lines[i]) return true;
     for(int i = 0; i < nbl; i++)  
-      if(board_cols_size[i] > max_cols[i]) return true;
-    return false;
+      if(board_max_nbc_cols[i] > problem_max_nbc_cols[i]) return true;
+    // one is not equal => false;
+    for(int i = 0; i < nbc; i++) 
+      if(board_max_nbc_lines[i] != problem_max_nbc_lines[i]) return false;
+    for(int i = 0; i < nbl; i++)
+      if(board_max_nbc_cols[i] != problem_max_nbc_cols[i]) return false;
+    // sizes of groups are different => false
+    for(int i = 0; i < nbl; i++)
+      for(int j = 0; j < problem_nb_c_lines[i]; j++) 
+	if(board_c_lines[i][j] != problem_c_lines[i][j]) return false;
+    for(int i = 0; i < nbc; i++)
+      for(int j = 0; j < problem_nb_c_cols[i]; j++) 
+	if(board_c_cols[i][j] != problem_c_cols[i][j]) return false;
+    // all are equals... so potentially the solution
+    return true;
   }
   void playout() {
     while( ! terminal()) {
@@ -256,8 +322,15 @@ struct nng_t {
       play(m);
     }
   }
+  // GGP-like score
   int score() {
-    
+    for(int i = 0; i < nbl; i++)
+      for(int j = 0; j < problem_nb_c_lines[i]; j++) 
+	if(board_c_lines[i][j] != problem_c_lines[i][j]) return 0;
+    for(int i = 0; i < nbc; i++)
+      for(int j = 0; j < problem_nb_c_cols[i]; j++) 
+	if(board_c_cols[i][j] != problem_c_cols[i][j]) return 0;
+    return 100;
   }
   
 };

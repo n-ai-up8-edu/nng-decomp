@@ -2,6 +2,7 @@
 #define MYNNG_H
 #include <cstdio>
 #include <cstdlib>
+#include <vector>
 #define WHITE 0
 #define BLACK 1
 char* cboard = (char*)".X";
@@ -284,6 +285,36 @@ struct nng_t {
     printf("ERROR : NO RAND MOVE\n"); exit(0);
     return ret;
   }
+  int get_nb_moves() {
+    return (nbl*nbc)-nb_val_set;
+  }
+  nng_move_t get_move(int _id) {
+    nng_move_t ret;
+    int id = _id;
+    for(int i = 0; i < nbl; i++) {
+      for(int j = 0; j < nbc; j++) {
+	if(id == 0 && board[i][j] == WHITE) {
+	  ret.line = i; ret.col = j; return ret;
+	}
+	if(board[i][j] == WHITE) id--;
+      }
+    }
+    printf("ERROR : NO %d MOVE\n", _id); exit(0);
+    return ret;
+  }
+  std::vector<nng_move_t> get_all_moves() {
+    std::vector<nng_move_t> ret;
+    for(int i = 0; i < nbl; i++) {
+      for(int j = 0; j < nbc; j++) {
+	if(board[i][j] == WHITE) {
+	  nng_move_t mm;
+	  mm.line = i; mm.col = j;
+	  ret.push_back(mm);
+	}
+      }
+    }
+    return ret;
+  } 
   void play(nng_move_t _m) {
     board[_m.line][_m.col] = BLACK;
     set_line_id(_m.line);
@@ -340,6 +371,17 @@ struct nng_t {
     }
     return 100;
   }
-  
+  std::string mkH() {
+    char strh[1024];
+    int strh_size = 0;
+    for(int i = 0; i < nbl; i++)
+      for(int j = 0; j < nbc; j++) {
+	strh[strh_size] = cboard[board[i][j]];
+	strh_size++; 
+      }
+    strh[strh_size] = '\0';
+    return std::string(strh);
+  }
+
 };
 #endif /* MYNNG_H */

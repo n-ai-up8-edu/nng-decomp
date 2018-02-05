@@ -1,0 +1,113 @@
+#ifndef MCTSNNG_H
+#define MCTSNNG_H
+#include <cstdio>
+#include <cstdlib>
+#include <vector>
+#include <unordered_map>
+#include "mynng.h"
+
+struct nng_node_info_t {
+  nng_move_t move;
+  int children_Wi;
+  int children_Ni;
+  bool terminal;
+  nng_node_info_t() {
+    move.line = -1; move.col = -1;
+    children_Wi = 0;
+    children_Ni = 0;
+    terminal = false;
+  }
+  void print() {
+    printf("move %d %d -- Wi %d -- Ni %d -- terminal %d\n", move.line, move.col, children_Ni, children_Wi, (int)terminal);
+  }
+};
+struct nng_node_t {
+  int nb_try;
+  std::vector<nng_node_info_t> infos;
+  nng_node_t() {
+    nb_try = 0;
+  }
+};
+
+std::unordered_map<std::string, int> H;
+nng_node_t* T;
+nng_t root_board;
+nng_t mcts_board;
+int* parent_id;
+int* children_id;
+struct nng_tree_t {
+  int nb_nodes_alloc;
+  int max_depth;
+  int nb_nodes;
+  int descent_size;
+  nng_tree_t(int _nb_nodes_alloc, int _max_depth) {
+    nb_nodes_alloc = _nb_nodes_alloc;
+    max_depth = _max_depth;
+    T = new nng_node_t[nb_nodes_alloc];
+    parent_id = new int[max_depth];
+    children_id = new int[max_depth];
+    T[0].infos.resize(root_board.get_nb_moves());
+    nb_nodes = 1;
+  }
+  
+  void print(int _id) {
+    printf("node %p\n", T[_id]);
+    for(nng_node_info_t i : T[_id].infos) i.print();
+  }
+  void finalize() {
+    delete[] T;
+    H.clear();
+  }
+  void selection() {
+    descent_size = 0;
+    parent_id[0] = 0;
+    children_id[0] = -1;
+    for(int i = 0; i < max_depth; i++) {
+      if(T[parent_id[i]].nb_try < mcts_board.get_nb_moves()) {
+	descent_size = i+1;
+	return;
+      }
+      printf("all nodes expanded !\n");
+      exit(0);
+    }
+  }
+  void expansion() {
+    int selection_id = parent_id[descent_size-1];
+    if(T[selection_id].nb_try == 0) {
+      std::vector<nng_move_t> mm = mcts_board.get_all_moves();
+      int i = 0;
+      for(nng_move_t j : mm) {
+    	T[selection_id].infos[i].move = j;
+    	++i;
+      }
+    }
+    int nb_moves = ((int)T[selection_id].infos.size()) - T[selection_id].nb_try;
+    int rmove = ((int)rand())%nb_moves;
+    int expansion_id = 0;
+    for(int i = 0; i < (int)T[selection_id].infos.size(); i++) {
+      if(T[selection_id].infos[i].children_Ni == 0) {
+    	if(rmove == 0) {
+    	  expansion_id = i; break;
+    	}
+    	rmove--;
+      }
+    }
+    //printf("expansion_id %d\n", expansion_id);
+    mcts_board.play(T[selection_id].infos[expansion_id].move);
+    children_id[selection_id] = expansion_id;
+  }
+  int simulation() {
+    /* if(mcts_board.terminal()) { */
+    /*    T[selection_id].infos[expansion_id].terminal=true; */
+    /*   return 0; */
+    /* } */
+    /* mcts_board.playout(); */
+    return mcts_board.score();
+  }
+  void backpropagate(int _score) {
+    
+  }
+};
+
+
+#endif /* MCTSNNG_H */

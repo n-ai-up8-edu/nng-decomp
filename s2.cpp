@@ -12,7 +12,7 @@ int main(int _ac, char** _av) {
   root_board.load((char*)"nonogram-001.input");
   root_board.print_problem_info();
   root_board.print_board();
-  struct timeval i_time;    
+  struct timeval i_time;
   struct timeval f_time;
   gettimeofday (&i_time, 0);
   int nb_iterations = 10000000;
@@ -27,7 +27,7 @@ int main(int _ac, char** _av) {
     if(T.solution_found) {
       gettimeofday (&f_time, 0);
       float time = ((float)(f_time.tv_sec - i_time.tv_sec)) +
-	((float)(f_time.tv_usec - i_time.tv_usec))/1000000.0;
+        ((float)(f_time.tv_usec - i_time.tv_usec))/1000000.0;
       printf("solved after %d iterations time %.2f\n", i, time);
       mcts_board.print_board();
       break;

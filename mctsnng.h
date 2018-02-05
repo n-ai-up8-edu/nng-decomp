@@ -57,7 +57,7 @@ struct nng_tree_t {
     solution_found = false;
   }
   void print(int _id) {
-    printf("node %p\n", T[_id]);
+    printf("node %p\n", &T[_id]);  // problème ici... pointeur ? j'ai ajouté &
     for(nng_node_info_t i : T[_id].infos) i.print();
   }
   void finalize() {
@@ -80,14 +80,14 @@ struct nng_tree_t {
     bool all_terminal = true;
     for(int i = 0; i < (int)T[_node_id].infos.size(); i++) {
       if(T[_node_id].infos[i].terminal == false) {
-	all_terminal = false;
-	double a = ((double) T[_node_id].infos[i].children_Wi ) / T[_node_id].infos[i].children_Ni;
-	double b = log((double) T[_node_id].nb_try) / T[_node_id].infos[i].children_Ni;
-	double score = a + K_UCT * b;
-	if(score > best_score) {
-	  best_id = i;
-	  best_score = score;
-	}
+        all_terminal = false;
+        double a = ((double) T[_node_id].infos[i].children_Wi ) / T[_node_id].infos[i].children_Ni;
+        double b = log((double) T[_node_id].nb_try) / T[_node_id].infos[i].children_Ni;
+        double score = a + K_UCT * b;
+        if(score > best_score) {
+          best_id = i;
+          best_score = score;
+        }
       }
     }
     descent_cid[_depth] = best_id;
@@ -114,8 +114,8 @@ struct nng_tree_t {
       std::vector<nng_move_t> mm = mcts_board.get_all_moves();
       int i = 0;
       for(nng_move_t j : mm) {
-    	T[selection_id].infos[i].move = j;
-    	++i;
+        T[selection_id].infos[i].move = j;
+        ++i;
       }
     }
     int nb_moves = ((int)T[selection_id].infos.size()) - T[selection_id].nb_try;
@@ -123,10 +123,10 @@ struct nng_tree_t {
     int expansion_id = 0;
     for(int i = 0; i < (int)T[selection_id].infos.size(); i++) {
       if(T[selection_id].infos[i].children_Ni == 0) {
-    	if(rmove == 0) {
-    	  expansion_id = i; break;
-    	}
-    	rmove--;
+        if(rmove == 0) {
+          expansion_id = i; break;
+        }
+        rmove--;
       }
     }
     mcts_board.play(T[selection_id].infos[expansion_id].move);
@@ -149,8 +149,8 @@ struct nng_tree_t {
       T[selection_id].nb_try ++;
       T[selection_id].infos[expansion_id].children_Ni ++;
       if(_score == 100) {
-	T[selection_id].infos[expansion_id].children_Wi ++;
-	solution_found = true;
+        T[selection_id].infos[expansion_id].children_Wi ++;
+        solution_found = true;
       }
     }
   }

@@ -10,7 +10,7 @@ int main(int _ac, char** _av) {
   srand(1);
   nng_t N;
   //N.load(_av[1]);
-  N.load((char*)"nonogram-001.input");
+  N.load((char*)"decomp/nonogram5x5_1_game.txt");
   N.print_problem_info();
   N.print_board();
   struct timeval i_time;

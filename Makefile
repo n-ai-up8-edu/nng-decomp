@@ -10,3 +10,9 @@ s1: mynng.h s1.cpp
 s2: mynng.h mctsnng.h s2.cpp
 	$(CC) $(CFLAGS) s2.cpp -o $@
 
+#MCTS solver, subproblems
+s3: mynng.h subnng.h mctssubnng.h s3.cpp
+	$(CC) $(CFLAGS) s3.cpp -o $@
+
+clean:
+	rm -f s1 s2 s3

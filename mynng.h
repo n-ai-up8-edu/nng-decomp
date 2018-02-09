@@ -372,7 +372,7 @@ struct nng_t {
     return 100;
   }
   std::string mkH() {
-    char strh[1024];
+    static char strh[1024];
     int strh_size = 0;
     for(int i = 0; i < nbl; i++)
       for(int j = 0; j < nbc; j++) {

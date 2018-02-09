@@ -31,6 +31,7 @@ struct nng_node_t {
   std::vector<nng_node_info_t> infos;
   nng_node_t() {
     nb_try = 0;
+    //infos.reserve(30);
   }
 };
 

@@ -9,7 +9,6 @@
 #define K_UCT 0.1
 
 struct nng_node_info_t {
-  int node_id;        // identifiant unique
   nng_move_t move;    // le coup joué pour arriver là (coordonnées)
   int children_Wi;    // nombre de victoires (victoire=1, échec=0)
   int children_Ni;    // nombre de visites
@@ -108,7 +107,7 @@ struct nng_tree_t {
       if(T[_node_id].infos[i].terminal == false) {
         all_terminal = false;
         double a = ((double) T[_node_id].infos[i].children_Wi ) / T[_node_id].infos[i].children_Ni;
-        double b = log((double) T[_node_id].nb_try) / T[_node_id].infos[i].children_Ni;
+        double b = sqrt(log((double) T[_node_id].nb_try) / T[_node_id].infos[i].children_Ni);
         double score = a + K_UCT * b;
         if(score > best_score) {
           best_id = i;
@@ -176,7 +175,7 @@ struct nng_tree_t {
     if(mcts_board.terminal()) {
       T[selection_id].nb_terminal ++;
       T[selection_id].infos[expansion_id].terminal=true;
-       return 0;
+       return 0; // retourne le score dans la feuille
     }
     // sinon on fait un playout et on retourne le score
     mcts_board.playout();

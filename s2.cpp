@@ -10,17 +10,21 @@ int main(int _ac, char** _av) {
   srand(1);
   nng_t root_board;
   //root_board.load(_av[1]);
-  root_board.load((char*)"decomp/nonogram10x10_1_game.txt");
+  root_board.load((char*)"decomp/nonogram5x5_5_game.txt");
   root_board.print_problem_info();
   root_board.print_board();
   struct timeval i_time;
   struct timeval f_time;
   gettimeofday (&i_time, 0);
-  int nb_iterations = 1000000000;
-  int max_depth = 60;
+  int nb_iterations = 10000000;
+  int max_depth = 25;
   nng_tree_t T(nb_iterations, max_depth, root_board);
   for(int i = 0; i < nb_iterations; i++) {
     T.selection();
+    // printf("selection:");
+    // for (int j = 0; j < T.descent_size; j++)
+    //   printf(" %d", T.descent_pid[j]);
+    // printf("\n");
     T.expansion();
     int score = T.simulation();
     T.backpropagate(score);

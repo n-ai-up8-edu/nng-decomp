@@ -38,7 +38,7 @@
 (col 5 1 5) (col 5 2 1)
 (col 6 1 1) (col 6 2 7)
 (col 7 1 1) (col 7 2 7)
-(col 8 1 1) (col 8 1 4)
+(col 8 1 1) (col 8 2 4)
 (col 9 1 3) (col 9 2 2)
 (col 10 1 4)
 
@@ -58,14 +58,14 @@
     (index ?col)
     (index ?row)
     (not (true (marked ?col ?row))))
-    
+
 ; Game dynamics
 
 (<= (next (marked ?col ?row))
     (does robot (mark ?col ?row)))
 (<= (next (marked ?col ?row))
     (true (marked ?col ?row)))
-    
+
 ; Terminality and goals
 
 ; How do we decide if a row is done (or doomed)?
@@ -73,7 +73,7 @@
 ; ?count = squares already seen in the group
 (<= (curRow ?row 0 1 0)
     (index ?row))
-; Case: We have a 0-length group so far and see a blank square 
+; Case: We have a 0-length group so far and see a blank square
 (<= (curRow ?row ?next ?group 0)
     (succ ?cur ?next)
     (not (true (marked ?next ?row)))
@@ -105,7 +105,7 @@
 ; ?count = squares already seen in the group
 (<= (curCol ?col 0 1 0)
     (index ?col))
-; Case: We have a 0-length group so far and see a blank square 
+; Case: We have a 0-length group so far and see a blank square
 (<= (curCol ?col ?next ?group 0)
     (succ ?cur ?next)
     (not (true (marked ?col ?next)))
@@ -227,7 +227,7 @@
 (<= terminal
     (not anyRowBad)
     (not anyColBad))
-    
+
 (<= (goal robot 100)
     (not anyRowBad)
     (not anyColBad))

@@ -7,10 +7,10 @@
 
 int main(int _ac, char** _av) {
   //if(_ac != 2) { printf("usage: %s NONOGRAM_INPUT_FILE\n", _av[0]); return 0; }
-  srand(1);
+  srand(time(NULL));
   nng_t root_board;
   //root_board.load(_av[1]);
-  root_board.load((char*)"decomp/nonogram5x5_5_game.txt");
+  root_board.load((char*)"decomp/nonogram5x5_game_Nsoluce");
   root_board.print_problem_info();
   root_board.print_board();
   struct timeval i_time;
